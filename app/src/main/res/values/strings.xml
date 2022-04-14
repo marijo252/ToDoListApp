@@ -42,4 +42,9 @@
     <string name="error_adding_geofence">Error Happened, Can\'t Add Geofence</string>
     <string name="login_button">Login</string>
     <string name="geofenceTriggerMissing">No Geofence Trigger Found! Abort mission!</string>
+    <string name="reminder_title_text">You have a reminder at this location!!</string>
+    <string name="Reminder_title">Reminder title:</string>
+    <string name="reminder_title_2">Reminder title:</string>
+    <string name="reminder_description_2">Reminder description:</string>
+    <string name="reminder_location_2">Reminder location: </string>
 </resources>

@@ -15,6 +15,7 @@ import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
@@ -44,6 +45,8 @@ class SaveReminderFragment : BaseFragment() {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_save_reminder, container, false)
 
+        geofencingClient = LocationServices.getGeofencingClient(this.requireActivity())
+
         setDisplayHomeAsUpEnabled(true)
 
         binding.viewModel = _viewModel
@@ -70,12 +73,9 @@ class SaveReminderFragment : BaseFragment() {
             )
             try{
                 addGeofence(reminderDataItem)
-                _viewModel.saveReminder(reminderDataItem)
-                Toast.makeText(
-                    activity, getString(R.string.reminder_saved),
-                    Toast.LENGTH_LONG
-                ).show()
+                _viewModel.validateAndSaveReminder(reminderDataItem)
             } catch (ex: Exception){
+                Log.e(TAG, "Error happened, exception: ${ex.message}")
                 Toast.makeText(
                     activity, getString(R.string.error_happened),
                     Toast.LENGTH_LONG
