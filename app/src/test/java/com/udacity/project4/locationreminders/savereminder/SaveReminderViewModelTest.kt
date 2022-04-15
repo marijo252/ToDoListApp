@@ -40,7 +40,6 @@ class SaveReminderViewModelTest {
     private lateinit var remindersDataSource: FakeDataSource
     private lateinit var saveReminderViewModel: SaveReminderViewModel
     private var reminder1 = ReminderDataItem("Title1", "Description1", "location1", 1.0, 1.0)
-    //TODO: provide testing to the SaveReminderView and its live data objects
     @Before
     fun setUpViewModel() {
         remindersDataSource = FakeDataSource()
