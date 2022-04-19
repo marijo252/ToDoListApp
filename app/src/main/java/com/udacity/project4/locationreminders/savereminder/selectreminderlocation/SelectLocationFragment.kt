@@ -11,6 +11,7 @@ import android.content.res.Resources
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.*
@@ -42,7 +43,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
     private lateinit var marker: Marker
+    private val locationRequest = LocationRequest.create()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -63,7 +66,32 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             onLocationSelected()
         }
 
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations) {
+                    setDeviceLocation()
+                }
+            }
+        }
+
+
+
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startLocationUpdates()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -71,11 +99,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapStyle(map)
         setMapLongClick(map)
         enableLocation()
+        setPoiClick(map)
     }
 
     @SuppressLint("MissingPermission")
-    private fun setDeviceLocation(){
-        map.isMyLocationEnabled = true
+    private fun setDeviceLocation() {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
@@ -95,7 +123,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             .addOnFailureListener {
                 Log.e(TAG, "exception: ${it.message}")
             }
-        setPoiClick(map)
     }
 
     private fun enableLocation() {
@@ -181,6 +208,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
+                map.isMyLocationEnabled = true
                 setDeviceLocation()
             }
         }
@@ -233,9 +261,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
-            if (marker != null) {
-                marker.remove()
-            }
+            marker.remove()
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
