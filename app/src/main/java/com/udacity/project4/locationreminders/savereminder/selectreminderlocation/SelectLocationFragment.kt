@@ -44,7 +44,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var marker: Marker
+    private var marker: Marker? = null
     private val locationRequest = LocationRequest.create()
 
     override fun onCreateView(
@@ -74,9 +74,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 }
             }
         }
-
-
-
         return binding.root
     }
 
@@ -108,10 +105,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     val currentLocationLatLng = LatLng(location.latitude, location.longitude)
-                    marker = map.addMarker(
-                        MarkerOptions().position(currentLocationLatLng)
-                            .title("current location")
-                    )
                     map.moveCamera(
                         CameraUpdateFactory
                             .newLatLngZoom(currentLocationLatLng, zoomLevel)
@@ -143,6 +136,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -151,6 +145,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         Log.d(TAG, "onRequestPermissionResult")
         if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                map.isMyLocationEnabled = true
                 checkDeviceLocationSettingsAndStartGeofence()
             } else {
                 Snackbar.make(
@@ -169,6 +164,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
@@ -240,7 +236,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
-            marker.remove()
+            marker?.remove()
             marker = map.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
@@ -255,13 +251,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             .build()
                     )
             )
-            marker.showInfoWindow()
+            marker?.showInfoWindow()
         }
     }
 
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
-            marker.remove()
+            marker?.remove()
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
@@ -283,14 +279,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             .build()
                     )
             )
-            marker.showInfoWindow()
+            marker?.showInfoWindow()
         }
     }
 
     private fun onLocationSelected() {
-        _viewModel.latitude.value = marker.position.latitude
-        _viewModel.longitude.value = marker.position.longitude
-        _viewModel.reminderSelectedLocationStr.value = marker.title
+        _viewModel.latitude.value = marker?.position?.latitude
+        _viewModel.longitude.value = marker?.position?.longitude
+        _viewModel.reminderSelectedLocationStr.value = marker?.title
         findNavController().popBackStack()
     }
 
