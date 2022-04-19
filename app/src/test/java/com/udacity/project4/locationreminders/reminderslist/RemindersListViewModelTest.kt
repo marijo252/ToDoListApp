@@ -61,14 +61,16 @@ class RemindersListViewModelTest {
 
     @Test
     fun loadReminders_whenFailure_reminderListEmpty() = mainCoroutineRule.runBlockingTest {
+        remindersDataSource.setReturnError(true)
         remindersListViewModel.loadReminders()
 
-        assertThat(remindersListViewModel.remindersList.getOrAwaitValue().isEmpty(), `is`(true))
+        assertThat(remindersListViewModel.showNoData.getOrAwaitValue(), `is`(true))
     }
 
     @Test
     fun loadReminders_whenLoading_showLoadingValue() = mainCoroutineRule.runBlockingTest {
         remindersDataSource.addReminders(reminder1, reminder2, reminder3)
+        remindersDataSource.setReturnError(false)
 
         mainCoroutineRule.pauseDispatcher()
         remindersListViewModel.loadReminders()
@@ -77,12 +79,12 @@ class RemindersListViewModelTest {
         mainCoroutineRule.resumeDispatcher()
         assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), `is`(false))
     }
-//
-//    @Test
-//    fun loadReminders_whenError_showSnackBar() = mainCoroutineRule.runBlockingTest {
-//        remindersListViewModel.loadReminders()
-//
-//        assertThat(remindersListViewModel.showSnackBar.getOrAwaitValue(), notNullValue())
-//    }
+
+    @Test
+    fun loadReminders_whenError_showSnackBar() = mainCoroutineRule.runBlockingTest {
+        remindersDataSource.setReturnError(true)
+        remindersListViewModel.loadReminders()
+        assertThat(remindersListViewModel.showSnackBar.getOrAwaitValue(), notNullValue())
+    }
 }
 

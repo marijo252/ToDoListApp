@@ -1,6 +1,7 @@
 package com.udacity.project4
 
 import android.app.Application
+import android.widget.Toast
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
@@ -9,8 +10,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers
-import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
@@ -21,8 +21,10 @@ import com.udacity.project4.locationreminders.data.local.RemindersLocalRepositor
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
+import com.udacity.project4.util.ToastMatcher
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.After
@@ -37,6 +39,7 @@ import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 
+@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class RemindersActivityTest :
@@ -102,6 +105,10 @@ class RemindersActivityTest :
         dataBindingIdlingResource.monitorActivity(activityScenario)
 
         onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withId(R.id.snackbar_text)).check(matches(withText(R.string.err_enter_title)))
+        Thread.sleep(2000)
+
         onView(withId(R.id.reminderTitle)).perform(typeText("Reminder Title"))
         onView(withId(R.id.reminderDescription)).perform(typeText("Reminder Description"))
         Thread.sleep(2000)
@@ -111,6 +118,8 @@ class RemindersActivityTest :
 
         Thread.sleep(2000)
         onView(withId(R.id.saveReminder)).perform(click())
+        onView(withText(R.string.reminder_saved))
+            .inRoot(ToastMatcher().apply {matches(isDisplayed())});
         onView(withId(R.id.title)).check(matches(withText("Reminder Title")))
         onView(withId(R.id.description)).check(matches(withText("Reminder Description")))
         Thread.sleep(2000)
